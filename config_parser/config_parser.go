@@ -282,6 +282,7 @@ func Parse_config(config interface{}) (*CE_config, error) {
         cl.ScrapeImpalaMetrics{}: impala_module_flag,
         cl.ScrapeHDFS{}: hdfs_module_flag,
         cl.ScrapeYARNMetrics{}: yarn_module_flag,
+        cl.ScrapeZookeeperMetrics{}: zookeeper_module_flag,
       },
     },
   deploy_ip,
