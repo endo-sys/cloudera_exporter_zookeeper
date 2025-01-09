@@ -2,7 +2,7 @@
  *
  * title           :collector/zookeeper_module.go
  * description     :Submodule Collector for the Cluster ZooKeeper metrics
- * author          :Your Name
+ * author          :Enes Erdoğan
  * date            :2025/01/09
  * version         :1.0
  *
