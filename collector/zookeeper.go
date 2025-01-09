@@ -1,7 +1,7 @@
 /*
  *
  * title           :collector/zookeeper_module.go
- * description     :Submodule Collector for the Cluster Zookeeper metrics
+ * description     :Submodule Collector for the Cluster ZooKeeper metrics
  * author          :Your Name
  * date            :2025/01/09
  * version         :1.0
@@ -28,118 +28,251 @@ import (
 /* ======================================================================
  * Data Structs
  * ====================================================================== */
-// None (same pattern as HDFS)
+// None (following the style of hdfs_module.go)
 
 /* ======================================================================
- * Constants with the Zookeeper module TSquery sentences
+ * Constants with the ZooKeeper module TSquery sentences
  * ====================================================================== */
 const ZK_SCRAPER_NAME = "zookeeper"
 
-// Example queries (placeholder). Adjust them for your actual Cloudera Manager queries:
+// --- Base Metric Queries ---
+// Adjust these queries as necessary for your CM environment:
 const (
-    // Possible ZooKeeper queries. Replace with real queries from CM:
-    ZK_ALERTS_RATE                = "SELECT LAST(alerts_rate) WHERE category=SERVICE and serviceType=ZOOKEEPER"
-    ZK_CANARY_DURATION            = "SELECT LAST(canary_duration) WHERE category=SERVICE and serviceType=ZOOKEEPER"
-    ZK_CURRENT_EPOCH_RATE         = "SELECT LAST(current_epoch_rate) WHERE category=SERVICE and serviceType=ZOOKEEPER"
-    ZK_CURRENT_XID                = "SELECT LAST(current_xid) WHERE category=SERVICE and serviceType=ZOOKEEPER"
-    // etc... add more as needed
+    // The number of alerts (events per second)
+    ZK_ALERTS_RATE = `
+SELECT LAST(alerts_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Duration of the last/current canary job (milliseconds)
+    ZK_CANARY_DURATION = `
+SELECT LAST(canary_duration)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // The current epoch (epoch per second)
+    ZK_CURRENT_EPOCH_RATE = `
+SELECT LAST(current_epoch_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // The current ZooKeeper XID
+    ZK_CURRENT_XID = `
+SELECT LAST(current_xid)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // The number of critical events (events per second)
+    ZK_EVENTS_CRITICAL_RATE = `
+SELECT LAST(events_critical_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // The number of important events (events per second)
+    ZK_EVENTS_IMPORTANT_RATE = `
+SELECT LAST(events_important_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // The number of informational events (events per second)
+    ZK_EVENTS_INFORMATIONAL_RATE = `
+SELECT LAST(events_informational_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Percentage of Time with Bad Health
+    ZK_HEALTH_BAD_RATE = `
+SELECT LAST(health_bad_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Percentage of Time with Concerning Health
+    ZK_HEALTH_CONCERNING_RATE = `
+SELECT LAST(health_concerning_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Percentage of Time with Disabled Health
+    ZK_HEALTH_DISABLED_RATE = `
+SELECT LAST(health_disabled_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Percentage of Time with Good Health
+    ZK_HEALTH_GOOD_RATE = `
+SELECT LAST(health_good_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+
+    // Percentage of Time with Unknown Health
+    ZK_HEALTH_UNKNOWN_RATE = `
+SELECT LAST(health_unknown_rate)
+WHERE category=SERVICE
+  AND serviceType=ZOOKEEPER
+`
+)
+
+// --- Aggregate Metric Queries (examples) ---
+// If you want aggregates across all clusters or totals, you can add them here:
+const (
+    // e.g. alerts_rate aggregated across clusters
+    ZK_ALERTS_RATE_ACROSS_CLUSTERS = `
+SELECT LAST(alerts_rate_across_clusters)
+`
+
+    // e.g. total alerts_rate aggregated across clusters
+    ZK_TOTAL_ALERTS_RATE_ACROSS_CLUSTERS = `
+SELECT LAST(total_alerts_rate_across_clusters)
+`
 )
 
 /* ======================================================================
- * Global variables
+ * Global variables (Prometheus descriptors)
  * ====================================================================== */
-// Prometheus data Descriptors for the metrics to export
 var (
-    zk_alerts_rate = create_zk_metric_struct(
-        "alerts_rate",
+    // Base metrics
+    zkAlertsRate = createZKMetricStruct("alerts_rate",
         "Number of ZooKeeper alerts (events per second)",
     )
-    zk_canary_duration = create_zk_metric_struct(
-        "canary_duration_ms",
-        "Duration of the last or currently running canary job in milliseconds",
+    zkCanaryDuration = createZKMetricStruct("canary_duration_ms",
+        "Duration of the last or currently running canary job (ms)",
     )
-    zk_current_epoch_rate = create_zk_metric_struct(
-        "current_epoch_rate",
-        "The current ZooKeeper epoch (epochs per second)",
+    zkCurrentEpochRate = createZKMetricStruct("current_epoch_rate",
+        "The current epoch (epoch per second)",
     )
-    zk_current_xid = create_zk_metric_struct(
-        "current_xid",
+    zkCurrentXID = createZKMetricStruct("current_xid",
         "The current ZooKeeper XID",
     )
-    // Add more descriptors as needed ...
+    zkEventsCriticalRate = createZKMetricStruct("events_critical_rate",
+        "The number of critical events (events per second)",
+    )
+    zkEventsImportantRate = createZKMetricStruct("events_important_rate",
+        "The number of important events (events per second)",
+    )
+    zkEventsInformationalRate = createZKMetricStruct("events_informational_rate",
+        "The number of informational events (events per second)",
+    )
+    zkHealthBadRate = createZKMetricStruct("health_bad_rate",
+        "Percentage of Time with Bad Health (s/s)",
+    )
+    zkHealthConcerningRate = createZKMetricStruct("health_concerning_rate",
+        "Percentage of Time with Concerning Health (s/s)",
+    )
+    zkHealthDisabledRate = createZKMetricStruct("health_disabled_rate",
+        "Percentage of Time with Disabled Health (s/s)",
+    )
+    zkHealthGoodRate = createZKMetricStruct("health_good_rate",
+        "Percentage of Time with Good Health (s/s)",
+    )
+    zkHealthUnknownRate = createZKMetricStruct("health_unknown_rate",
+        "Percentage of Time with Unknown Health (s/s)",
+    )
+
+    // Aggregate metrics (examples)
+    zkAlertsRateAcrossClusters = createZKMetricStruct("alerts_rate_across_clusters",
+        "Alerts rate aggregated across all clusters",
+    )
+    zkTotalAlertsRateAcrossClusters = createZKMetricStruct("total_alerts_rate_across_clusters",
+        "Total alerts rate aggregated across all clusters",
+    )
 )
 
-// This array ties each query to its corresponding Prometheus descriptor
-var zk_query_variable_relationship = []relation{
-    {ZK_ALERTS_RATE,         *zk_alerts_rate},
-    {ZK_CANARY_DURATION,     *zk_canary_duration},
-    {ZK_CURRENT_EPOCH_RATE,  *zk_current_epoch_rate},
-    {ZK_CURRENT_XID,         *zk_current_xid},
-    // Add more {query, descriptor} pairs as needed...
+// This array ties each query to its corresponding Prometheus descriptor.
+// Add or remove items here based on your needs.
+var zkQueryVariableRelationship = []relation{
+    // Base metrics
+    {ZK_ALERTS_RATE,                *zkAlertsRate},
+    {ZK_CANARY_DURATION,            *zkCanaryDuration},
+    {ZK_CURRENT_EPOCH_RATE,         *zkCurrentEpochRate},
+    {ZK_CURRENT_XID,                *zkCurrentXID},
+    {ZK_EVENTS_CRITICAL_RATE,       *zkEventsCriticalRate},
+    {ZK_EVENTS_IMPORTANT_RATE,      *zkEventsImportantRate},
+    {ZK_EVENTS_INFORMATIONAL_RATE,  *zkEventsInformationalRate},
+    {ZK_HEALTH_BAD_RATE,            *zkHealthBadRate},
+    {ZK_HEALTH_CONCERNING_RATE,     *zkHealthConcerningRate},
+    {ZK_HEALTH_DISABLED_RATE,       *zkHealthDisabledRate},
+    {ZK_HEALTH_GOOD_RATE,           *zkHealthGoodRate},
+    {ZK_HEALTH_UNKNOWN_RATE,        *zkHealthUnknownRate},
+
+    // Example aggregator queries
+    {ZK_ALERTS_RATE_ACROSS_CLUSTERS,        *zkAlertsRateAcrossClusters},
+    {ZK_TOTAL_ALERTS_RATE_ACROSS_CLUSTERS,  *zkTotalAlertsRateAcrossClusters},
 }
 
 /* ======================================================================
  * Functions
  * ====================================================================== */
 
-// create_zk_metric_struct is analogous to create_hdfs_metric_struct,
-// but uses the "zookeeper" scraper name.
-func create_zk_metric_struct(metric_name string, description string) *prometheus.Desc {
-    // If description is empty, auto-generate
+// createZKMetricStruct is analogous to create_hdfs_metric_struct in hdfs_module.go
+func createZKMetricStruct(metricName string, description string) *prometheus.Desc {
+    // If description is empty, auto-generate something readable
     if len(description) == 0 {
-        description = strings.Replace(strings.ToUpper(metric_name), "_", " ", -1)
+        description = strings.ReplaceAll(strings.ToUpper(metricName), "_", " ")
     }
 
     // Return a Prometheus descriptor
     return prometheus.NewDesc(
-        prometheus.BuildFQName(namespace, ZK_SCRAPER_NAME, metric_name),
+        prometheus.BuildFQName(namespace, ZK_SCRAPER_NAME, metricName),
         description,
-        []string{"cluster", "entityName"}, // same label pattern as HDFS
+        []string{"cluster", "entityName"}, // Labels, same pattern as HDFS
         nil,
     )
 }
 
-// create_zk_metric is analogous to create_hdfs_metric, specialized for ZK:
-func create_zk_metric(
+// createZKMetric is analogous to create_hdfs_metric in hdfs_module.go
+func createZKMetric(
     ctx context.Context,
     config Collector_connection_data,
     query string,
-    metric_struct prometheus.Desc,
+    metricStruct prometheus.Desc,
     ch chan<- prometheus.Metric,
 ) bool {
 
-    // Perform the timeseries query
-    json_parsed, err := make_and_parse_timeseries_query(ctx, config, query)
+    // 1. Perform the timeseries query
+    jsonParsed, err := make_and_parse_timeseries_query(ctx, config, query)
     if err != nil {
         return false
     }
 
-    // Get the number of timeSeries in the response
-    num_ts_series, err := jp.Get_timeseries_num(json_parsed)
+    // 2. Number of timeSeries in the response
+    numTsSeries, err := jp.Get_timeseries_num(jsonParsed)
     if err != nil {
         return false
     }
 
-    // Extract metadata for each TimeSeries
-    for ts_index := 0; ts_index < num_ts_series; ts_index++ {
-        cluster_name := jp.Get_timeseries_query_cluster(json_parsed, ts_index)
-        entity_name := jp.Get_timeseries_query_entity_name(json_parsed, ts_index)
+    // 3. Extract metadata for each TimeSeries
+    for tsIndex := 0; tsIndex < numTsSeries; tsIndex++ {
+        clusterName := jp.Get_timeseries_query_cluster(jsonParsed, tsIndex)
+        entityName := jp.Get_timeseries_query_entity_name(jsonParsed, tsIndex)
 
-        // Get the last data point’s value
-        value, err := jp.Get_timeseries_query_value(json_parsed, ts_index)
+        // 4. Grab the last data point’s value
+        value, err := jp.Get_timeseries_query_value(jsonParsed, tsIndex)
         if err != nil {
+            // Skip if no valid data
             continue
         }
 
-        // Push to Prometheus
+        // 5. Emit to Prometheus
         ch <- prometheus.MustNewConstMetric(
-            &metric_struct,
+            &metricStruct,
             prometheus.GaugeValue,
             value,
-            cluster_name, // label
-            entity_name,  // label
+            clusterName,
+            entityName,
         )
     }
+
     return true
 }
 
@@ -148,22 +281,23 @@ func create_zk_metric(
  * ====================================================================== */
 type ScrapeZookeeperMetrics struct{}
 
-// Name of the Scraper. Must be unique.
+// Name returns the Scraper name (must be unique).
 func (ScrapeZookeeperMetrics) Name() string {
     return ZK_SCRAPER_NAME
 }
 
-// Help describes the role of the Scraper.
+// Help describes the role of this Scraper.
 func (ScrapeZookeeperMetrics) Help() string {
-    return "ZooKeeper Metrics"
+    return "Collects ZooKeeper metrics from Cloudera Manager"
 }
 
-// Version of the scraper (arbitrary float).
+// Version is an arbitrary float for the scraper version.
 func (ScrapeZookeeperMetrics) Version() float64 {
     return 1.0
 }
 
-// Scrape function that runs all queries and collects metrics.
+// Scrape runs the queries defined in zkQueryVariableRelationship
+// and emits metrics to the Prometheus channel.
 func (ScrapeZookeeperMetrics) Scrape(
     ctx context.Context,
     config *Collector_connection_data,
@@ -171,29 +305,27 @@ func (ScrapeZookeeperMetrics) Scrape(
 ) error {
     log.Debug_msg("Executing ZooKeeper Metrics Scraper")
 
-    // Counters
-    success_queries := 0
-    error_queries := 0
+    successQueries := 0
+    errorQueries := 0
 
-    // Loop over each (QUERY, PROM_DESC) relation and collect
-    for i := 0; i < len(zk_query_variable_relationship); i++ {
-        relationElem := zk_query_variable_relationship[i]
-        if create_zk_metric(ctx, *config, relationElem.Query, relationElem.Metric_struct, ch) {
-            success_queries++
+    // Loop over each (QUERY, PROM_DESC) relation
+    for i := range zkQueryVariableRelationship {
+        rel := zkQueryVariableRelationship[i]
+        if createZKMetric(ctx, *config, rel.Query, rel.Metric_struct, ch) {
+            successQueries++
         } else {
-            error_queries++
+            errorQueries++
         }
     }
 
     log.Debug_msg(
-        "ZK Module executed %d queries. %d success and %d errors",
-        success_queries+error_queries,
-        success_queries,
-        error_queries,
+        "ZK Scraper: %d queries run, %d successful, %d errors",
+        successQueries+errorQueries,
+        successQueries,
+        errorQueries,
     )
-
     return nil
 }
 
-// Confirm that ScrapeZookeeperMetrics implements the Scraper interface
+// Ensure ScrapeZookeeperMetrics implements the Scraper interface
 var _ Scraper = ScrapeZookeeperMetrics{}
