@@ -115,7 +115,11 @@ func parse_api_version (config_reader *ini.File) (string, error) {
   return api_version, nil
 }
 
-
+func parse_zookeeper_module_flag(config_reader *ini.File) bool {
+    // If [modules] section has "zookeeper_module = true", we load the ZooKeeper scraper
+    zookeeper_module_flag := config_reader.Section("modules").Key("zookeeper_module").MustBool(false)
+    return zookeeper_module_flag
+}
 
 // Dynamic load of modules
 func parse_global_status_module_flag (config_reader *ini.File) bool {
@@ -235,6 +239,8 @@ func Parse_config(config interface{}) (*CE_config, error) {
   impala_module_flag := parse_impala_module_flag (cfg)
   hdfs_module_flag := parse_hdfs_module_flag (cfg)
   yarn_module_flag := parse_yarn_module_flag (cfg)
+  zookeeper_module_flag := parse_zookeeper_module_flag(cfg)
+
 
 
   // System parameters
