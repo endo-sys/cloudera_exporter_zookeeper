@@ -42,84 +42,84 @@ const (
     ZK_ALERTS_RATE = `
 SELECT LAST(alerts_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName =ZOOKEEPER
 `
 
     // Duration of the last/current canary job (milliseconds)
     ZK_CANARY_DURATION = `
 SELECT LAST(canary_duration)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // The current epoch (epoch per second)
     ZK_CURRENT_EPOCH_RATE = `
 SELECT LAST(current_epoch_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // The current ZooKeeper XID
     ZK_CURRENT_XID = `
 SELECT LAST(current_xid)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND sserviceName=ZOOKEEPER
 `
 
     // The number of critical events (events per second)
     ZK_EVENTS_CRITICAL_RATE = `
 SELECT LAST(events_critical_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // The number of important events (events per second)
     ZK_EVENTS_IMPORTANT_RATE = `
 SELECT LAST(events_important_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // The number of informational events (events per second)
     ZK_EVENTS_INFORMATIONAL_RATE = `
 SELECT LAST(events_informational_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // Percentage of Time with Bad Health
     ZK_HEALTH_BAD_RATE = `
 SELECT LAST(health_bad_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // Percentage of Time with Concerning Health
     ZK_HEALTH_CONCERNING_RATE = `
 SELECT LAST(health_concerning_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // Percentage of Time with Disabled Health
     ZK_HEALTH_DISABLED_RATE = `
 SELECT LAST(health_disabled_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // Percentage of Time with Good Health
     ZK_HEALTH_GOOD_RATE = `
 SELECT LAST(health_good_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 
     // Percentage of Time with Unknown Health
     ZK_HEALTH_UNKNOWN_RATE = `
 SELECT LAST(health_unknown_rate)
 WHERE category=SERVICE
-  AND serviceType=ZOOKEEPER
+  AND serviceName=ZOOKEEPER
 `
 )
 
@@ -180,10 +180,11 @@ var (
     )
 
     // Aggregate metrics (examples)
-    zkAlertsRateAcrossClusters = createZKMetricStruct("alerts_rate_across_clusters",
-        "Alerts rate aggregated across all clusters",
+    
+    zkTotalAlertsRateAcrossClusters = createZKMetricStruct("total_alerts_rate_across_servers",
+        "Total alerts rate aggregated across all clusters",
     )
-    zkTotalAlertsRateAcrossClusters = createZKMetricStruct("total_alerts_rate_across_clusters",
+    zkAlertsRateAcrossClusters = createZKMetricStruct("alerts_rate_across_servers",
         "Total alerts rate aggregated across all clusters",
     )
 )
